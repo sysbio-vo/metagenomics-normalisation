@@ -1,0 +1,55 @@
+Run,ScientificName,SampleName
+SRR21104587,human saliva metagenome,A1_pool1
+SRR21104586,human saliva metagenome,A1_pool2
+SRR21104575,human saliva metagenome,A1_pool3
+SRR21104564,human saliva metagenome,C1_pool1
+SRR21104553,human saliva metagenome,C1_pool2
+SRR21104542,human saliva metagenome,C1_pool3
+SRR21104537,human saliva metagenome,D1_pool1
+SRR21104536,human saliva metagenome,D1_pool2
+SRR21104535,human saliva metagenome,D1_pool3
+SRR21104534,human saliva metagenome,E1_pool1
+SRR21104585,human saliva metagenome,E1_pool2
+SRR21104584,human saliva metagenome,E1_pool3
+SRR21104583,human saliva metagenome,F1_pool1
+SRR21104582,human saliva metagenome,F1_pool2
+SRR21104581,human saliva metagenome,F1_pool3
+SRR21104580,human saliva metagenome,H1_pool1
+SRR21104579,human saliva metagenome,H1_pool2
+SRR21104578,human saliva metagenome,H1_pool3
+SRR21104577,human saliva metagenome,J1_pool1
+SRR21104576,human saliva metagenome,J1_pool2
+SRR21104574,human saliva metagenome,J1_pool3
+SRR21104573,synthetic metagenome,Mock1-1
+SRR21104572,synthetic metagenome,Mock1-2
+SRR21104571,synthetic metagenome,Mock1-3
+SRR21104567,synthetic metagenome,Mock1-synDNApool1-1
+SRR21104566,synthetic metagenome,Mock1-synDNApool1-2
+SRR21104565,synthetic metagenome,Mock1-synDNApool1-3
+SRR21104563,synthetic metagenome,Mock1-synDNApool2-1
+SRR21104562,synthetic metagenome,Mock1-synDNApool2-2
+SRR21104561,synthetic metagenome,Mock1-synDNApool2-3
+SRR21104560,synthetic metagenome,Mock1-synDNApool3-1
+SRR21104559,synthetic metagenome,Mock1-synDNApool3-2
+SRR21104558,synthetic metagenome,Mock1-synDNApool3-3
+SRR21104570,synthetic metagenome,Mock2-1
+SRR21104569,synthetic metagenome,Mock2-2
+SRR21104568,synthetic metagenome,Mock2-3
+SRR21104557,synthetic metagenome,Mock2-synDNApool1-1
+SRR21104556,synthetic metagenome,Mock2-synDNApool1-2
+SRR21104555,synthetic metagenome,Mock2-synDNApool1-3
+SRR21104554,synthetic metagenome,Mock2-synDNApool2-1
+SRR21104552,synthetic metagenome,Mock2-synDNApool2-2
+SRR21104551,synthetic metagenome,Mock2-synDNApool2-3
+SRR21104550,synthetic metagenome,Mock2-synDNApool3-1
+SRR21104549,synthetic metagenome,Mock2-synDNApool3-2
+SRR21104548,synthetic metagenome,Mock2-synDNApool3-3
+SRR21104547,synthetic metagenome,Pool1-1
+SRR21104546,synthetic metagenome,Pool1-2
+SRR21104545,synthetic metagenome,Pool1-3
+SRR21104544,synthetic metagenome,Pool2-1
+SRR21104543,synthetic metagenome,Pool2-2
+SRR21104541,synthetic metagenome,Pool2-3
+SRR21104540,synthetic metagenome,Pool3-1
+SRR21104539,synthetic metagenome,Pool3-2
+SRR21104538,synthetic metagenome,Pool3-3
