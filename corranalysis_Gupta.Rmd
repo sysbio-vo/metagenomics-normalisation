@@ -1,0 +1,194 @@
+# Only healthy samples
+
+```{r}
+library("pheatmap")
+library("dplyr")
+library("viridis")
+library("ggpubr")
+
+# vectors to filter out healthy samples from Gupta
+samples <- read.table('data/otutable_metadata.csv',
+                   sep = ",", header = TRUE, row.names = 1) %>%
+  filter(study_name == "GuptaA_2019") %>% rownames()
+gupta_all <- gsub("GupDM_", "", samples)
+gupta_healthy <-  gupta_all[grep("^H", gupta_all)]
+
+
+# load meta for species for higher taxonomical annotation
+metasp <- read.table('data/metaspecies.csv',
+                     sep = ",", header = TRUE, row.names = 1)
+annot_phyla <- metasp['phylum']
+
+# annotation for samples
+annot_condition <- data.frame(row.names = gupta_all,
+                              'стан' = ifelse(substr(gupta_all, 1, 1) == "H", "здорові", "рак"))
+
+# to add titles in a function
+titles <- list("prepped" = "Сирі дані", "css" = "CSS", "blom" = "Blom",
+                "clr" = "CLR", "combat" = "ComBat")
+```
+
+
+```{r}
+plotheat_healthy_samples <- function(method, addlegend = FALSE){
+  pathtoftable <- paste0('camp_normalization_out/normalization/otutable_', method, '.csv')
+  ftable <- read.table(pathtoftable,
+                       sep = ",", header = TRUE, row.names = 1)
+  colnames(ftable) <- gsub("GupDM_", "", colnames(ftable))
+  
+  # sort out the healthy samples
+  ftable <- ftable[, gupta_healthy]
+
+  corr_matrix <- cor(ftable)
+  pheatmap(corr_matrix, show_colnames = FALSE, show_rownames = TRUE,
+           color = magma(256, begin = .15, direction = -1), border_color = NA,
+           legend = addlegend, main = titles[method])
+}
+
+```
+
+```{r}
+plotheat_all_samples <- function(method, addlegend = FALSE){
+  pathtoftable <- paste0('camp_normalization_out/normalization/otutable_', method, '.csv')
+  ftable <- read.table(pathtoftable,
+                       sep = ",", header = TRUE, row.names = 1)
+  colnames(ftable) <- gsub("GupDM_", "", colnames(ftable))
+  
+  ftable <- ftable[, gupta_all]
+  
+  corr_matrix <- cor(ftable)
+  pheatmap(corr_matrix, show_colnames = FALSE, show_rownames = FALSE,
+           color = magma(256, begin = .15, direction = -1), border_color = NA,
+           legend = addlegend, main = titles[method],
+           annotation_col = annot_condition)
+}
+```
+
+```{r}
+plotheat_species <- function(method, healthy = TRUE){
+  pathtoftable <- paste0('camp_normalization_out/normalization/otutable_', method, '.csv')
+  ftable <- read.table(pathtoftable,
+                       sep = ",", header = TRUE, row.names = 1)
+  colnames(ftable) <- gsub("GupDM_", "", colnames(ftable))
+  
+  if (healthy){ # sort out the healthy samples
+    ftable <- ftable[, gupta_healthy]
+  } else{ # sort out all Gupta samples
+    ftable <- ftable[, gupta_all]
+  }
+  
+  # transpose the feature table
+  ftable <- data.frame(t(ftable), check.names = FALSE)
+  # filter out the species with `the same` counts among all samples
+  ftable <- ftable[sapply(ftable, function(x) length(unique(x))>1)]
+  
+  # subset the metaspecies to match the ftable
+  #metasp <- metasp[rownames(metasp) %in% colnames(ftable), ]
+  
+  
+  corr_matrix <- cor(ftable)
+  pheatmap(corr_matrix, show_colnames = FALSE, show_rownames = FALSE,
+           color = magma(256, begin = .15, direction = -1), border_color = NA,
+           legend = TRUE, main = titles[method],
+           annotation_col = annot_phyla)
+}
+```
+
+## Correlation in species
+```{r}
+prep <- plotheat_species("prepped")
+css <- plotheat_species("css")
+clr <- plotheat_species("clr")
+combat <- plotheat_species("combat")
+blom <- plotheat_species("blom")
+
+ggarrange(prep[[4]],
+          ggarrange(css[[4]], clr[[4]], blom[[4]], combat[[4]]), 
+          widths = c(1, 2), labels = "AUTO") %>% 
+  ggexport(filename = "figures/heatmap_healthy-species.png",
+           width = 1960, height = 980, res = 150)
+```
+
+## Correlation in samples
+
+```{r}
+prep <- plotheat_samples("prepped", addlegend = TRUE, healthy = FALSE)
+css <- plotheat_samples("css", healthy = FALSE)
+clr <- plotheat_samples("clr", healthy = FALSE)
+combat <- plotheat_samples("combat", healthy = FALSE)
+blom <- plotheat_samples("blom", healthy = FALSE)
+
+ggarrange(prep[[4]],
+          ggarrange(css[[4]], clr[[4]], blom[[4]], combat[[4]]), 
+          widths = c(1, 2), labels = "AUTO") %>% 
+  ggexport(filename = "figures/heatmap_healthy-samples.png",
+           width = 1960, height = 980, res = 150)
+
+```
+
+# All samples
+
+```{r}
+prep <- plotheat_all_samples("prepped", addlegend = TRUE)
+css <- plotheat_all_samples("css")
+clr <- plotheat_all_samples("clr")
+combat <- plotheat_all_samples("combat")
+blom <- plotheat_all_samples("blom")
+
+ggarrange(prep[[4]],
+          ggarrange(css[[4]], clr[[4]], blom[[4]], combat[[4]]), 
+          widths = c(1, 2), labels = "AUTO") %>% 
+  ggexport(filename = "figures/heatmap_all-samples.png",
+           width = 1960, height = 1100, res = 150)
+
+```
+
+# Samples separately
+
+```{r}
+# List of dataframes
+prep <- read.table(paste0('camp_normalization_out/normalization/otutable_', 'prepped', '.csv'),
+                       sep = ",", header = TRUE, row.names = 1)
+css <- read.table(paste0('camp_normalization_out/normalization/otutable_', 'css', '.csv'),
+                       sep = ",", header = TRUE, row.names = 1)
+clr <- read.table(paste0('camp_normalization_out/normalization/otutable_', 'clr', '.csv'),
+                       sep = ",", header = TRUE, row.names = 1)
+blom <- read.table(paste0('camp_normalization_out/normalization/otutable_', 'blom', '.csv'),
+                       sep = ",", header = TRUE, row.names = 1)
+combat <- read.table(paste0('camp_normalization_out/normalization/otutable_', 'combat', '.csv'),
+                       sep = ",", header = TRUE, row.names = 1)
+
+df_list <- list(prep, css, clr, blom, combat)
+
+```
+
+```{r}
+methods <- c("prep", "css", "clr", "blom", "combat")
+
+plotheat_methods <- function(sample){
+ # extract one sample columns from each dataframe
+  cols_combined <- lapply(seq_along(df_list), function(i) {
+    col <- df_list[[i]][sample]
+    return(col)
+  })
+  
+  # combine  columns into a single dataframe
+  cols_combined <- data.frame(do.call(cbind, cols_combined))
+  colnames(cols_combined) <- c("Сирі дані", "СSS", "CLR", "Blom", "ComBat")
+  corr_matrix <- cor(cols_combined)
+  p <- pheatmap(corr_matrix, show_colnames = TRUE, show_rownames = TRUE,
+             color = magma(256, begin = .15, direction = -1), border_color = NA,
+             legend = TRUE, cluster_cols = FALSE, cluster_rows = FALSE, main = sample) 
+  return(p[[4]])
+}
+```
+
+```{r}
+plots <- lapply(samples[1:10], plotheat_methods)
+
+# Arrange the plots using ggarrange
+ggarrange(plotlist = plots, ncol = 5, nrow = 2) %>% 
+  ggexport(filename = "figures/heatmap_methods.png",
+           width = 1960, height = 768, res = 150)
+```
+The graph shows the correlation between 4 normalization methods and raw data for several healthy samples in Gupta 2029. The general trend is strong correlation between CSS and Combat, with CSS gravitating towards the row data The least correlation is observed between Blom and raw data and CLR with both ComBat and Blom. Overall, the tendencies described might be visually observed on the heatmaps that illustrate correlation between samples.
