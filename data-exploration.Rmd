@@ -1,6 +1,13 @@
+---
+output:
+  html_document: default
+---
+
 # Healthy Gupta samples with low correlation
-The heatmap of healthy samples from Gupta exhibited a weird pattern: first 5 samples, namely DF, CQ, CT, AJ, AN, are poorly correlated with the rest. A possible explanation are drastic differences in sequencing depth 
+The heatmap of healthy samples from Gupta exhibited a weird pattern: first 5 samples, namely DF, CQ, CT, AJ, AN, are poorly correlated with the rest. A possible explanation are drastic differences in sequencing depth
 ```{r}
+knitr::opts_chunk$set(message=FALSE, warning=FALSE)
+
 meta <- read.table('data/otutable_metadata.csv',
                      sep = ",", header = TRUE, row.names = 1)
 # select heakthy cols
@@ -11,7 +18,9 @@ rownames(meta) <- gsub("GupDM_H", "", rownames(meta))
 
 ```{r}
 library(data.table)
-meta[order(meta['number_reads']), ][c('number_bases', 'minimum_read_length', 'location')]
+library(knitr)
+kable(
+meta[order(meta['number_reads']), ][c('number_bases', 'minimum_read_length', 'location')])
 
 ```
 Not all of the samples that do not comply have low coverage. It might be explained with overall low DNA concentration in a sample as a consequence of sample collection and DNA extraction.
@@ -44,7 +53,7 @@ for (method in c('prepped', 'clr', 'blom', 'css', 'combat')){
   df['all samples',method] <- sdzerocols(method, healthy = FALSE)
 }
 
-df
+kable(df, caption = "Number of zero std columns")
 ```
 
 The table contains numbers of columns with zero standard deviation, which were excluded prior to correlation analysis.Turns out CLR does reduce the variation by introducing all zero species rows (116 in the case of this dataset), but zero standard deviation and the consequent inability to perform correlation analysis is the result of subsampling (e.g. selecting only healthy samples). Interestingly enough, Blom transforms the data to approximate the normal distribution, which in turn leaves the dataset zero-free in any case either with or without subsampling.

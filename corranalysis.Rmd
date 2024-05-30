@@ -1,10 +1,19 @@
-# Only healthy samples
+---
+output:
+  html_document: default
+---
+
+```{r echo = FALSE}
+knitr::opts_chunk$set(message=FALSE, warning=FALSE, echo=FALSE, results='hide',
+                      fig.keep = "last", fig.width=10, fig.height=5, fig.fullwidth=TRUE)
+```
 
 ```{r}
 library("pheatmap")
 library("dplyr")
 library("viridis")
 library("ggpubr")
+library("knitr")
 
 # vectors to filter out healthy samples from Gupta
 samples <- read.table('data/otutable_metadata.csv',
@@ -94,8 +103,74 @@ plotheat_species <- function(method, healthy = TRUE){
 }
 ```
 
-## Correlation in species
-```{r}
+# PCA
+
+```{r fig.width=16}
+library("vegan")
+library("viridis")
+library("ggplot2")
+library("ggpubr")
+
+# ====== Preparatory stuff ======
+
+palette=c("#003f5c",
+          "#2f4b7c",
+          "#665191",
+          "#a05195",
+          "#d45087",
+          "#f95d6a",
+          "#ff7c43",
+          "#ffa600")
+
+# dictionary of titles
+titles <- c('tss' = 'TSS', 'uq' = 'UQ', 'med' = 'MED', 'css' = 'CSS',
+            'tmm' = 'TMM', 'clr' = 'CLR', 'blom' = 'Blom', 'npn' = 'NPN',
+            'combat' = 'ComBat', 'limma' = 'Limma',
+            'prepped' = 'Сирі дані')
+# common meta
+meta <- read.table('data/otutable_metadata.csv',
+                   sep = ",", header = TRUE, row.names = 1)
+
+
+plotpca <- function(method, colorby){
+  pathtoftable <- paste('camp_normalization_out/normalization/otutable_', method, '.csv', sep='')
+  ftable <- read.table(pathtoftable,
+                       sep = ",", header = TRUE, row.names = 1)
+  dist <- vegdist(t(ftable), method = 'euclidean', na.rm = TRUE)
+  pcoa <- data.frame(wcmdscale(dist, k=2)) # store 2 coordinates
+  ggplot(as.data.frame(pcoa),
+         aes(x=X1, y=X2, color = colorby, shape = meta$study_name)) +
+    geom_point(size=3) +
+    labs(title = titles[method]) +
+    scale_color_manual(name = NULL, values = magma(2, begin = 0.23, end = 0.8),
+                       labels = c("здорові", "рак")) +
+    scale_shape_manual(name = NULL, values = c(1, 17),
+                       labels = c("GuptaA 2019", "ThomasAM 2018b")) +
+    theme_light()
+}
+
+# ====== Plotting =======
+prep <- plotpca('prepped', colorby = meta$study_condition) +
+  theme(legend.position="bottom")
+css <- plotpca('css', colorby = meta$study_condition)
+blom <- plotpca('blom', colorby = meta$study_condition)
+combat <- plotpca('combat', colorby=meta$study_condition)
+clr <- plotpca('clr', colorby=meta$study_condition)
+
+#tss, uq, med, css, tmm, clr, blom, npn, combat, limma
+norm_plots <- ggarrange(css, clr, blom, combat,
+                       common.legend = TRUE, legend = "none", ncol = 2, nrow = 2)
+
+ggarrange(prep, norm_plots,
+          ncol=2, nrow=1, widths = c(1, 2), labels = "AUTO")
+```
+
+The figure shows the results of PCA on raw (A) and normalized data (B) to compare the effect of normalization on the variation in the dataset. The dataset contains samples from two studies to demonstrate the batch effect. In the raw data, we can observe clustering by study, which overlaps the true biological variation in the samples, namely the difference between the taxonomic diversity of healthy participants and colorectal cancer patients. A similar trend is observed for the data normalized by Cumulative Sum Scaling (CSS) and Blom transform. Normalization, a method aimed at correcting the batch effect, is the best way to level the difference between ComBat studies. This correction is especially useful for diagnostic machine learning models that aim to classify patient samples into healthy and sick. Training such models requires large amounts of data, and thus often involves combining data from different studies into a common dataset. In this way, batch effect correction can enhance the biological variation observed in the samples while attenuating the variation caused by technical factors, potentially improving model accuracy.
+In general, the figure shows that each method significantly changes the variation within the dataset, but certain features can be observed in each of the plots, such as the island of multiple cancer samples from the Gupta 2018 study and the slightly isolated samples of healthy participants from the same study.
+
+# Correlation in species
+
+```{r, fig.width=16, fig.height=7}
 prep <- plotheat_species("prepped")
 css <- plotheat_species("css")
 clr <- plotheat_species("clr")
@@ -104,29 +179,33 @@ blom <- plotheat_species("blom")
 
 ggarrange(prep[[4]],
           ggarrange(css[[4]], clr[[4]], blom[[4]], combat[[4]]), 
-          widths = c(1, 2), labels = "AUTO") %>% 
-  ggexport(filename = "figures/heatmap_healthy-species.png",
-           width = 1960, height = 980, res = 150)
+          widths = c(1, 2), labels = "AUTO")
+# %>% ggexport(filename = "figures/heatmap_healthy-species.png", width = 1960, height = 980, res = 150)
 ```
 
-## Correlation in samples
+CLR resuces the diversity. The reasons are explored in `data.exploration.Rmd`.
+
+# Correlation between samples
+## Healthy samples
 
 ```{r}
-prep <- plotheat_samples("prepped", addlegend = TRUE, healthy = FALSE)
-css <- plotheat_samples("css", healthy = FALSE)
-clr <- plotheat_samples("clr", healthy = FALSE)
-combat <- plotheat_samples("combat", healthy = FALSE)
-blom <- plotheat_samples("blom", healthy = FALSE)
+prep <- plotheat_healthy_samples("prepped", addlegend = TRUE)
+css <- plotheat_healthy_samples("css")
+clr <- plotheat_healthy_samples("clr")
+combat <- plotheat_healthy_samples("combat")
+blom <- plotheat_healthy_samples("blom")
 
 ggarrange(prep[[4]],
           ggarrange(css[[4]], clr[[4]], blom[[4]], combat[[4]]), 
-          widths = c(1, 2), labels = "AUTO") %>% 
-  ggexport(filename = "figures/heatmap_healthy-samples.png",
-           width = 1960, height = 980, res = 150)
+          widths = c(1, 2), labels = "AUTO")
+
+# %>% ggexport(filename = "figures/heatmap_healthy-samples.png", width = 1960, height = 980, res = 150)
 
 ```
+The change in correlation between samples due to normalization can be observed by comparing the heat maps in the Figure. Only samples from healthy participants in the Gupta 2019 study were used to create these heatmaps to ensure data homogeneity. The raw data show a clear clustering pattern, where the first five samples are not significantly correlated with the rest and are somewhat correlated with each other, while most samples show a high level of correlation. This can be explained by the variation in sample preparation for sequencing and the difference in sequencing depth. Given that the samples come from healthy individuals and were sequenced in the same study, such a strong correlation is expected. 
+None of the methods preserve this pattern. CLR normalization and Blom transformation lead to a uniform level of correlation between medium and low samples, respectively, while ComBat and especially CSS retain pockets of strong correlation.
 
-# All samples
+## All samples
 
 ```{r}
 prep <- plotheat_all_samples("prepped", addlegend = TRUE)
@@ -137,13 +216,12 @@ blom <- plotheat_all_samples("blom")
 
 ggarrange(prep[[4]],
           ggarrange(css[[4]], clr[[4]], blom[[4]], combat[[4]]), 
-          widths = c(1, 2), labels = "AUTO") %>% 
-  ggexport(filename = "figures/heatmap_all-samples.png",
-           width = 1960, height = 1100, res = 150)
+          widths = c(1, 2), labels = "AUTO")
+# %>% ggexport(filename = "figures/heatmap_all-samples.png", width = 1960, height = 1100, res = 150)
 
 ```
 
-# Samples separately
+# Correlation between methods
 
 ```{r}
 # List of dataframes
@@ -183,12 +261,12 @@ plotheat_methods <- function(sample){
 }
 ```
 
-```{r}
+```{r fig.width=10, fig.height=4}
 plots <- lapply(samples[1:10], plotheat_methods)
 
 # Arrange the plots using ggarrange
-ggarrange(plotlist = plots, ncol = 5, nrow = 2) %>% 
-  ggexport(filename = "figures/heatmap_methods.png",
-           width = 1960, height = 768, res = 150)
+ggarrange(plotlist = plots, ncol = 5, nrow = 2)
+# %>% ggexport(filename = "figures/heatmap_methods.png", width = 1960, height = 768, res = 150)
 ```
+
 The graph shows the correlation between 4 normalization methods and raw data for several healthy samples in Gupta 2029. The general trend is strong correlation between CSS and Combat, with CSS gravitating towards the row data The least correlation is observed between Blom and raw data and CLR with both ComBat and Blom. Overall, the tendencies described might be visually observed on the heatmaps that illustrate correlation between samples.
