@@ -45,8 +45,8 @@ study_counts <- table(meta$study_name)
 
 # to check the number of unique values in each column
 #sapply(meta, function(x) length(unique(x)))
-write.csv(meta, "camp_normalization_data-retrieval/otutable_metadata.csv")
-write.csv(counts, "camp_normalization_data-retrieval/otutable.csv")
+write.csv(meta, "data/otutable_metadata.csv")
+write.csv(counts, "data/otutable.csv")
 
 # ====== Table 2: Studies ======
 table2 <- meta %>% 
@@ -57,6 +57,4 @@ table2 <- meta %>%
             'Здорових зразків' = sum(disease == 'healthy'),
             'Ракових зразків' = sum(disease == 'CRC'))
 
-
-
-write.csv(table2, "camp_normalization_data-retrieval/table2.csv")
+write.csv(table2, "docs/table2.csv")
